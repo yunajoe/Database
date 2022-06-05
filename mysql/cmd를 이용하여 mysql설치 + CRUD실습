@@ -131,7 +131,7 @@ pymysql TypeError: object supporting the buffer API required
 - utf-8이라고 써서 난 오류
 
 -------------------------------------------------------------
-# 데이터 insert해보기 
+# nsert해보기 
 
 sql = "INSERT INTO book (title, genre, author) VALUES(%s, %s,%s)"
 
