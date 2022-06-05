@@ -22,9 +22,7 @@ user1 로그인시 --> cmd입력란에 javac, java명령어 사용가능
 user2 로그인시 --> cmd입력란에 javac, java명령어 사용가능
 
 '''
-
-![환경변수](C:\Users\yunaj\OneDrive\Pictures\환경변수.png)
-
+ 
 
 환경변수 잡아주고  cmd로 들어와서 
 C:\Program Files\MySQL\mysql-8.0.29-winx64\bin>mysqld start
