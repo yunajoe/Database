@@ -1,0 +1,238 @@
+
+# 아래 블로그를 따라 cmd에서 mysql설치를 한다.
+https://developer-p.tistory.com/54
+
+cmd창에서 mysql명령어를 사용하기 위해서는 환경변수를 설정해줘야한다. 
+
+'''
+환경변수 설정에는
+
+1.사용자변수
+- 해당 사용자의 계정으로 컴퓨터에 로그인 시에만 적용되는 변수.
+
+ex) 사용자가 user1, user2있다고 가정할 때 JAVA_HOME이 user1에만 적용되어 있을 때 
+user1 로그인시 --> cmd입력란에 javac, java명령어 사용가능
+user2 로그인시 --> cmd입력란에 javac, java명령어 사용불가
+
+2.시스템변수
+- 시스템 전반에 걸쳐 적용되는 변수. 어느 계정에나 적용되는 공통적인 변수라고 할 수 있음
+
+ex) JAVA_HOME설정이 시스템변수에 적용되어 있을 경우
+user1 로그인시 --> cmd입력란에 javac, java명령어 사용가능
+user2 로그인시 --> cmd입력란에 javac, java명령어 사용가능
+
+'''
+
+![환경변수](C:\Users\yunaj\OneDrive\Pictures\환경변수.png)
+
+
+환경변수 잡아주고  cmd로 들어와서 
+C:\Program Files\MySQL\mysql-8.0.29-winx64\bin>mysqld start
+C:\Program Files\MySQL\mysql-8.0.29-winx64\bin>mysql -u root -p
+
+
+# 접속완료!
+Welcome to the MySQL monitor.  Commands end with ; or \g.
+Your MySQL connection id is 26
+Server version: 8.0.29 MySQL Community Server - GPL
+mysql>
+
+
+# 로그인후! 
+mysql> show databases;
+기본적인 데이터 베이스들이 나온다.
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| sys                |
+
+
+# practice 데이터 베이스 생성
+mysql> create database practice;
+
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
+| practice           |
+| sys                |
++--------------------+
+
+
+# 테이블 생성
+create table book이라고하면은 컬럼이 없기 때문에 오류가 난다. 따라서 컬럼값을 같이 지정해줘야 한다.
+mysql> create table book (
+    -> id INT(5) NOT NULL AUTO_INCREMENT,
+    -> title CHAR(30),
+    -> genre CHAR(10),
+    -> author CHAR(30),
+    -> primary key(id)
+    -> );
+
+Query OK, 0 rows affected, 1 warning (0.05 sec)
+
+# 확인
+mysql> describe book;
++--------+----------+------+-----+---------+----------------+
+| Field  | Type     | Null | Key | Default | Extra          |
++--------+----------+------+-----+---------+----------------+
+| id     | int      | NO   | PRI | NULL    | auto_increment |
+| title  | char(30) | YES  |     | NULL    |                |
+| genre  | char(10) | YES  |     | NULL    |                |
+| author | char(30) | YES  |     | NULL    |                |
++--------+----------+------+-----+---------+----------------+
+
+
+# 테이블에 데이터 넣기 
+mysql> Insert into book(title, genre, author)
+    -> values (
+    -> "코드잘하고싶다",
+    -> "IT",
+    -> "yuna"
+    -> );
+Query OK, 1 row affected (0.02 sec)
+
+# 확인 
+ select * from book;
++----+----------------+-------+--------+
+| id | title          | genre | author |
++----+----------------+-------+--------+
+|  1 | 코드잘하고싶다 | IT    | yuna   |
++----+----------------+-------+--------+
+
+# 조건부로 내용확인
+# 장르가 IT인 것만들만 fetch해오기 
+
+mysql> select * from book WHERE genre ="IT";
++----+----------------+-------+--------+
+| id | title          | genre | author |
++----+----------------+-------+--------+
+|  1 | 코드잘하고싶다 | IT    | yuna   |
++----+----------------+-------+--------+
+1 row in set (0.00 sec)
+
+--------------------------------------------------------------------
+
+# pymysql를 이용하여 VSC와 mysql 를 연동시켜봅시다! #
+# Pymysql 이란?
+PyMySQL is an interface for connecting to a MySQL database server from Python
+
+# pymysql 설치하다 오류난것들
+conn = pymysql.connect(host="localhost", user="root", password='1234',
+                       db="practice", charset="utf8")
+AttributeError: 'NoneType' object has no attribute 'encoding'
+- 비밀번호를 1234로 써서 난 오류
+
+pymysql TypeError: object supporting the buffer API required
+- utf-8이라고 써서 난 오류
+
+-------------------------------------------------------------
+# 데이터 insert해보기 
+
+sql = "INSERT INTO book (title, genre, author) VALUES(%s, %s,%s)"
+
+try:
+    cursor = conn.cursor()
+    with cursor:
+        for i in range(1,6):            
+            cursor.execute(sql,(f"개발자되기{i}","IT","yuna"))            
+    conn.commit()
+    
+finally:
+    conn.close()
+    
+# cmd에서 확인
+
+mysql> select * from practice.book;
++----+--------------------+-------+--------+
+| id | title              | genre | author |
++----+--------------------+-------+--------+
+|  1 | 코딩정말잘하고싶다 | IT    | yuna   |
+|  2 | 개발자되기1        | IT    | yuna   |
+|  3 | 개발자되기2        | IT    | yuna   |
+|  4 | 개발자되기3        | IT    | yuna   |
+|  5 | 개발자되기4        | IT    | yuna   |
+|  6 | 개발자되기5        | IT    | yuna   |
++----+--------------------+-------+--------+
+6 rows in set (0.00 sec)
+
+---------------------------------------------------------------
+# update해 보기 
+
+import pymysql
+import pandas as pd
+import numpy as np 
+
+conn = pymysql.connect(host="localhost", port=3306, user="root", password='1234',
+                       database="practice", charset="utf8")
+
+cursor = conn.cursor()
+sql="UPDATE book set title = %s WHERE title = %s"
+
+try:
+    with cursor:
+        cursor.execute(sql, ("오늘하루도힘!", "개발자되기2"))
+        conn.commit()
+finally:
+    conn.close()      
+    
+#cmd에서 확인
+mysql> select * from practice.book;
++----+--------------------+-------+--------+
+| id | title              | genre | author |
++----+--------------------+-------+--------+
+|  1 | 코딩정말잘하고싶다 | IT    | yuna   |
+|  2 | 개발자되기1        | IT    | yuna   |
+|  3 | 오늘하루도힘!      | IT    | yuna   |
+|  4 | 개발자되기3        | IT    | yuna   |
+|  5 | 개발자되기4        | IT    | yuna   |
+|  6 | 개발자되기5        | IT    | yuna   |
++----+--------------------+-------+--------+
+6 rows in set (0.00 sec)
+
+-------------------------------------------------------
+
+# DELETE 해보기 
+
+import pymysql
+import pandas as pd
+import numpy as np 
+
+conn = pymysql.connect(host="localhost", port=3306, user="root", password='1234',
+                       database="practice", charset="utf8")
+
+cursor = conn.cursor()
+sql = "DELETE FROM book WHERE id = %s"
+
+try:
+    with cursor:
+        cursor.execute(sql,('5'))
+        conn.commit()
+finally:
+    conn.close()
+    
+  #note     
+여기서 마주했던 문제가 있었는데실행하려는 SQL명령어에서 %s 는 인자의 형식을 지정해주는게 아니다
+즉, int형식이라서 %d, float형식이라서 %f같은걸 쓰면안된다.
+만약 사용할 시 다음과 같은 에러가 발생한다
+TypeError: %d format: a number is required, not strTypeError: a float is required
+무조건 %s 사용하기  
+    
+# cmd에서 확인
+mysql> select * from practice.book;
++----+--------------------+-------+--------+
+| id | title              | genre | author |
++----+--------------------+-------+--------+
+|  1 | 코딩정말잘하고싶다 | IT    | yuna   |
+|  2 | 개발자되기1        | IT    | yuna   |
+|  3 | 오늘하루도힘!      | IT    | yuna   |
+|  4 | 개발자되기3        | IT    | yuna   |
+|  6 | 개발자되기5        | IT    | yuna   |
++----+--------------------+-------+--------+
+5 rows in set (0.00 sec)
